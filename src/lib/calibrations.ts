@@ -3,6 +3,7 @@
  */
 import { and, asc, desc, eq, isNull, sql } from "drizzle-orm";
 
+import { addMonths, readCertificateInfo } from "@/lib/cert-filename";
 import { db } from "@/lib/db";
 import {
   webMeterCalibrations,
@@ -98,6 +99,55 @@ export async function listMeterChoices(): Promise<
     .from(webMeters)
     .where(eq(webMeters.isDeleted, false))
     .orderBy(asc(webMeters.assetNo));
+}
+
+/**
+ * 성적서를 계측기에 붙일 때, 그 성적서가 속한 교정 건을 찾아 준다.
+ * 없으면 파일명에서 읽은 날짜로 새로 만든다.
+ *
+ * 이게 없으면 성적서만 쌓이고 교정 이력은 비어 있게 된다.
+ *
+ * 계측기의 교정 기한은 건드리지 않는다 — 옛 성적서를 뒤늦게 붙였다고 해서
+ * 기한이 과거로 되돌아가면 안 되기 때문이다. 기한은 사람이 정한다.
+ */
+export async function ensureCalibrationForCertificate(
+  meterId: string,
+  originalName: string,
+): Promise<string | null> {
+  const { calibratedOn, certificateNo } = readCertificateInfo(originalName);
+  if (!calibratedOn) return null;
+
+  const month = calibratedOn.slice(0, 7);
+
+  // 같은 달에 이미 교정 이력이 있으면 그걸 쓴다. 하루 차이로 두 건이 생기지 않게.
+  const existing = await db
+    .select({ id: webMeterCalibrations.id })
+    .from(webMeterCalibrations)
+    .where(
+      and(
+        eq(webMeterCalibrations.meterId, meterId),
+        eq(webMeterCalibrations.isDeleted, false),
+        sql`to_char(${webMeterCalibrations.calibratedOn}, 'YYYY-MM') = ${month}`,
+      ),
+    )
+    .limit(1);
+
+  if (existing[0]) return existing[0].id;
+
+  const [created] = await db
+    .insert(webMeterCalibrations)
+    .values({
+      meterId,
+      calibratedOn,
+      nextDueYm: addMonths(month, 12),
+      agency: "BCS",
+      certificateNo,
+      result: "PASS", // 성적서가 발행되면 합격으로 본다
+      note: "성적서에서 자동 생성",
+    })
+    .returning({ id: webMeterCalibrations.id });
+
+  return created.id;
 }
 
 /**

@@ -67,6 +67,8 @@ npm run dev
 | `npm run seed` | 엑셀 데이터 이관 (이미 들어 있으면 아무것도 하지 않음) |
 | `npm run seed -- --reset` | **기존 계측기 데이터를 지우고** 다시 이관 |
 | `npm run backup` | DB + 사진을 NAS 에 백업 ([docs/BACKUP.md](./docs/BACKUP.md)) |
+| `npm run import-certs` | NAS 의 교정 성적서 이관 (`-- --apply` 로 실제 반영) |
+| `npm run backfill-calibrations` | 성적서만 붙어 있는 것을 교정 이력에 연결 (`-- --apply`) |
 
 빌드가 SWC/Turbopack 에서 막히면 `next dev --webpack` / `next build --webpack` 을 쓴다.
 

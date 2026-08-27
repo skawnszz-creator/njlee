@@ -6,7 +6,10 @@ import { redirect } from "next/navigation";
 
 import { writeAudit } from "@/lib/audit";
 import { requireAdmin } from "@/lib/auth/guards";
-import { syncDueFromCalibrations } from "@/lib/calibrations";
+import {
+  ensureCalibrationForCertificate,
+  syncDueFromCalibrations,
+} from "@/lib/calibrations";
 import { db } from "@/lib/db";
 import {
   CALIBRATION_RESULTS,
@@ -207,9 +210,16 @@ export async function assignCertificateAction(
   const target = rows[0];
   if (!target) redirect("/certificates");
 
+  // 파일명에서 교정일을 읽어 그 교정 건에 함께 붙인다.
+  // 이게 없으면 성적서만 쌓이고 교정 이력은 계속 비어 있게 된다.
+  const calibrationId = await ensureCalibrationForCertificate(
+    meter.id,
+    target.originalName,
+  );
+
   await db
     .update(webMeterCertificates)
-    .set({ meterId: meter.id, updatedAt: new Date() })
+    .set({ meterId: meter.id, calibrationId, updatedAt: new Date() })
     .where(eq(webMeterCertificates.id, id));
 
   await writeAudit({
@@ -217,8 +227,10 @@ export async function assignCertificateAction(
     action: "CERT_ASSIGN",
     entityType: "web_meter_certificates",
     entityId: id,
-    summary: `성적서 연결: ${target.originalName} → ${meter.assetNo}`,
-    changes: { from: target.meterId, to: meter.id },
+    summary: `성적서 연결: ${target.originalName} → ${meter.assetNo}${
+      calibrationId ? " (교정 이력 연결됨)" : " (파일명에 날짜가 없어 이력은 못 만듦)"
+    }`,
+    changes: { from: target.meterId, to: meter.id, calibrationId },
   });
 
   revalidatePath("/certificates");
