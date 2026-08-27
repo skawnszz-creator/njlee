@@ -17,6 +17,7 @@ import { spawn } from "node:child_process";
 import { constants } from "node:fs";
 import {
   access,
+  appendFile,
   copyFile,
   mkdir,
   readdir,
@@ -24,6 +25,7 @@ import {
   stat,
   writeFile,
 } from "node:fs/promises";
+import { EOL } from "node:os";
 import path from "node:path";
 
 process.loadEnvFile(".env.local");
@@ -34,6 +36,31 @@ const BACKUP_ROOT = required("BACKUP_ROOT");
 const PG_BIN = process.env.PG_BIN ?? "";
 /** 남겨 둘 DB 백업 개수. 매일 돌리면 이 숫자가 곧 보관 일수다. */
 const KEEP = Number(process.env.BACKUP_KEEP ?? 30) || 30;
+
+/**
+ * 화면에 찍은 것을 그대로 로그 파일에도 남긴다.
+ * 작업 스케줄러로 밤에 돌 때는 아무도 화면을 보지 않기 때문이다.
+ */
+const logLines: string[] = [];
+function say(line = ""): void {
+  console.log(line);
+  logLines.push(line);
+}
+
+async function flushLog(ok: boolean): Promise<void> {
+  try {
+    const dir = path.join(process.cwd(), "logs");
+    await mkdir(dir, { recursive: true });
+    const head = `===== ${new Date().toISOString()} ${ok ? "성공" : "실패"} =====`;
+    await appendFile(
+      path.join(dir, "backup.log"),
+      [head, ...logLines, ""].join(EOL),
+      "utf8",
+    );
+  } catch {
+    // 로그를 못 남기는 것이 백업 자체를 실패로 만들지는 않게 한다.
+  }
+}
 
 function required(name: string): string {
   const value = process.env[name];
@@ -196,8 +223,8 @@ async function main() {
   const startedAt = new Date();
   const at = stamp(startedAt);
 
-  console.log("계측기 관리 시스템 백업");
-  console.log(`  받는 곳 : ${BACKUP_ROOT}`);
+  say("계측기 관리 시스템 백업");
+  say(`  받는 곳 : ${BACKUP_ROOT}`);
 
   // NAS 가 꺼져 있거나 네트워크 드라이브가 끊겼을 때 원인을 바로 알 수 있게 한다.
   try {
@@ -215,24 +242,27 @@ async function main() {
   await mkdir(dbDir, { recursive: true });
   await mkdir(filesDir, { recursive: true });
 
-  console.log("\n[1/3] 데이터베이스");
+  say("");
+  say("[1/3] 데이터베이스");
   const db = await backupDatabase(dbDir, at);
-  console.log(`  ${path.basename(db.file)}  (${human(db.size)})`);
+  say(`  ${path.basename(db.file)}  (${human(db.size)})`);
 
-  console.log("\n[2/3] 파일");
+  say("");
+  say("[2/3] 파일");
   const files = await mirrorFiles(FILE_STORAGE_ROOT, filesDir);
   if (files.missing) {
-    console.log(`  저장 폴더가 없습니다: ${FILE_STORAGE_ROOT}`);
+    say(`  저장 폴더가 없습니다: ${FILE_STORAGE_ROOT}`);
   } else {
-    console.log(
+    say(
       `  새로 복사 ${files.copied}개 (${human(files.bytes)}) · 이미 있던 것 ${files.skipped}개`,
     );
   }
 
-  console.log("\n[3/3] 오래된 백업 정리");
+  say("");
+  say("[3/3] 오래된 백업 정리");
   const pruned = await pruneOldDumps(dbDir);
-  console.log(`  보관 ${pruned.kept}개 · 삭제 ${pruned.removed.length}개`);
-  for (const name of pruned.removed) console.log(`    - ${name}`);
+  say(`  보관 ${pruned.kept}개 · 삭제 ${pruned.removed.length}개`);
+  for (const name of pruned.removed) say(`    - ${name}`);
 
   const manifest = {
     backedUpAt: startedAt.toISOString(),
@@ -251,11 +281,16 @@ async function main() {
   );
 
   const seconds = ((Date.now() - startedAt.getTime()) / 1000).toFixed(1);
-  console.log(`\n완료 (${seconds}초)`);
-  console.log("\n복구 방법은 docs/BACKUP.md 를 보세요.");
+  say("");
+  say(`완료 (${seconds}초)`);
+  say("복구 방법은 docs/BACKUP.md 를 보세요.");
 }
 
-main().catch((error: Error) => {
-  console.error(`\n백업 실패\n${error.message}`);
-  process.exit(1);
-});
+main()
+  .then(() => flushLog(true))
+  .catch(async (error: Error) => {
+    say("");
+    say(`백업 실패: ${error.message}`);
+    await flushLog(false);
+    process.exit(1);
+  });
