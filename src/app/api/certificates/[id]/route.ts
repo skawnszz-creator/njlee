@@ -4,16 +4,13 @@
  * 사진과 같은 원칙이다 — 정적 폴더로 노출하지 않고 여기를 거쳐 세션을 확인한다.
  * 열람은 전 직원이 할 수 있다.
  */
-import { createReadStream } from "node:fs";
-import { stat } from "node:fs/promises";
-import { Readable } from "node:stream";
-
 import { and, eq } from "drizzle-orm";
 
 import { writeAudit } from "@/lib/audit";
 import { getSessionUser } from "@/lib/auth/session";
 import { db } from "@/lib/db";
 import { webMeterCertificates, webMeters } from "@/lib/db/schema";
+import { serveFile } from "@/lib/http-file";
 import { absoluteFilePath } from "@/lib/storage";
 
 export async function GET(
@@ -40,40 +37,32 @@ export async function GET(
   const row = rows[0];
   if (!row) return new Response("Not Found", { status: 404 });
 
-  let absolute: string;
+  const url = new URL(request.url);
+
   try {
-    absolute = absoluteFilePath(row.cert.filePath);
-    await stat(absolute);
+    const response = await serveFile({
+      request,
+      absolutePath: absoluteFilePath(row.cert.filePath),
+      mimeType: row.cert.mimeType,
+      fileName: row.cert.originalName,
+      download: url.searchParams.get("download") === "1",
+    });
+
+    // 성적서를 누가 언제 열어봤는지 남긴다.
+    // PDF 뷰어는 한 파일을 Range 로 여러 번 나눠 받으므로, 이어받기 요청은 세지 않는다.
+    if (!request.headers.get("range") && request.method === "GET") {
+      await writeAudit({
+        actor: user,
+        action: "CERT_DOWNLOAD",
+        entityType: "web_meter_certificates",
+        entityId: row.cert.id,
+        summary: `성적서 열람: ${row.assetNo ?? "(계측기 미지정)"} ${row.cert.originalName}`,
+      });
+    }
+
+    return response;
   } catch {
+    // 파일이 없거나 읽을 수 없는 경우. 상세한 사유는 사용자에게 보여주지 않는다.
     return new Response("Not Found", { status: 404 });
   }
-
-  // 성적서를 누가 언제 열어봤는지 남긴다.
-  await writeAudit({
-    actor: user,
-    action: "CERT_DOWNLOAD",
-    entityType: "web_meter_certificates",
-    entityId: row.cert.id,
-    summary: `성적서 열람: ${row.assetNo ?? "(계측기 미지정)"} ${row.cert.originalName}`,
-  });
-
-  // ?download=1 이면 저장 대화상자가 뜨고, 없으면 브라우저에서 바로 열린다.
-  const download =
-    new URL(request.url).searchParams.get("download") === "1";
-
-  const stream = Readable.toWeb(
-    createReadStream(absolute),
-  ) as unknown as ReadableStream;
-
-  return new Response(stream, {
-    headers: {
-      "Content-Type": row.cert.mimeType,
-      "Content-Length": String(row.cert.sizeBytes),
-      "X-Content-Type-Options": "nosniff",
-      "Content-Disposition": `${download ? "attachment" : "inline"}; filename*=UTF-8''${encodeURIComponent(
-        row.cert.originalName,
-      )}`,
-      "Cache-Control": "private, max-age=600",
-    },
-  });
 }
