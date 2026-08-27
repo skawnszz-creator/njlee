@@ -62,6 +62,11 @@ export function dueLevel(
   today: string = currentYm(),
 ): DueLevel {
   if (meter.status === "NOT_SUBJECT") return "NONE";
+
+  // 사람이 직접 '기한초과(사용금지)'로 지정한 것은 적힌 기한과 상관없이 빨갛게 둔다.
+  // 그러지 않으면 빨간 배지가 붙은 채 줄만 멀쩡해 보인다.
+  if (meter.status === "EXPIRED") return "OVERDUE";
+
   if (!meter.calibrationDueYm) return "NONE";
   if (meter.calibrationDueYm < today) return "OVERDUE";
   if (meter.calibrationDueYm <= addMonths(today, 1)) return "SOON";

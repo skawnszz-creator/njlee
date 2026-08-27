@@ -460,7 +460,7 @@
     "calibrationDueYm": "2027-01",
     "quantity": 1,
     "serialNo": "040235211",
-    "status": "IN_USE",
+    "status": "EXPIRED",
     "note": null,
     "sortOrder": 32
   },
@@ -475,7 +475,7 @@
     "calibrationDueYm": "2027-01",
     "quantity": 1,
     "serialNo": "040234983",
-    "status": "IN_USE",
+    "status": "EXPIRED",
     "note": null,
     "sortOrder": 33
   },
@@ -849,7 +849,7 @@
     "controlNo": "DSS자산",
     "calibrationDueYm": "2027-01",
     "quantity": 1,
-    "serialNo": "501988G",
+    "serialNo": "503712K",
     "status": "IN_USE",
     "note": null,
     "sortOrder": 59
