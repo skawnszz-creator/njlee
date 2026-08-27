@@ -1080,21 +1080,6 @@
     "sortOrder": 72
   },
   {
-    "assetNo": "DS0060",
-    "nameKo": "DC HV POWER SUPPLY",
-    "nameJa": null,
-    "maker": "NOA",
-    "model": "NOA-10K2R0Z / 10KV",
-    "assetOwner": "KYOSAN",
-    "controlNo": "41-01-99-101087",
-    "calibrationDueYm": "2027-01",
-    "quantity": 1,
-    "serialNo": "MF120131-01B",
-    "status": "IN_USE",
-    "note": null,
-    "sortOrder": 73
-  },
-  {
     "assetNo": "DS0062",
     "nameKo": "Network Analyzer",
     "nameJa": null,

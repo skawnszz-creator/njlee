@@ -28,6 +28,16 @@ export function currentYm(now: Date = new Date()): string {
   return `${year}-${month}`;
 }
 
+/** 오늘 날짜(YYYY-MM-DD). 서버가 NAS(UTC)여도 한국 기준으로 계산한다. */
+export function currentDate(now: Date = new Date()): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(now);
+}
+
 /** 'YYYY-MM' 에 개월 수를 더한다. */
 export function addMonths(ym: string, months: number): string {
   const [y, m] = ym.split("-").map(Number);

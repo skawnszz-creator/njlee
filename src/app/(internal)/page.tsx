@@ -10,6 +10,10 @@ import {
   type AssetOwner,
   type MeterStatus,
 } from "@/lib/db/schema";
+import {
+  countUnassignedCertificates,
+  meterIdsWithCertificates,
+} from "@/lib/calibrations";
 import { getDictionary, meterName } from "@/lib/i18n";
 import {
   currentYm,
@@ -128,6 +132,12 @@ export default async function MeterListPage({
   const summary = await summarize(meters);
   const today = currentYm();
 
+  const admin = isAdmin(user);
+  const [withCerts, unassigned] = await Promise.all([
+    meterIdsWithCertificates(),
+    admin ? countUnassignedCertificates() : Promise.resolve(0),
+  ]);
+
   return (
     <div className="space-y-4">
       {/* 한 줄 요약 */}
@@ -155,10 +165,19 @@ export default async function MeterListPage({
           <strong className="tabular">{summary.calibrating}</strong>
         </span>
 
-        {isAdmin(user) && (
+        {admin && unassigned > 0 && (
+          <Link
+            href="/certificates"
+            className="ml-auto rounded-md border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-100"
+          >
+            {t.cert.unassigned} {unassigned}
+          </Link>
+        )}
+
+        {admin && (
           <Link
             href="/meters/new"
-            className="ml-auto rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700"
+            className={`rounded-md bg-slate-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-slate-700 ${unassigned > 0 ? "" : "ml-auto"}`}
           >
             + {t.list.add}
           </Link>
@@ -246,6 +265,11 @@ export default async function MeterListPage({
                     >
                       {meterName(lang, meter)}
                     </Link>
+                    {withCerts.has(meter.id) && (
+                      <span className="ml-1.5 text-xs" title={t.cert.title}>
+                        📄
+                      </span>
+                    )}
                   </td>
                   <td className={TD}>{meter.maker ?? t.common.none}</td>
                   <td

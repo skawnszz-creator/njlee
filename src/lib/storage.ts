@@ -21,6 +21,28 @@ export function meterPhotoRelPath(
   return `meters/${meterId.toLowerCase()}/${photoId.toLowerCase()}${safeExt.toLowerCase()}`;
 }
 
+/** 교정 성적서 파일의 상대경로. 사진과 같은 계측기 폴더 아래 certs/ 에 둔다. */
+export function meterCertificateRelPath(
+  meterId: string,
+  certificateId: string,
+  ext: string,
+): string {
+  const safeExt = ext.startsWith(".") ? ext : `.${ext}`;
+  return `meters/${meterId.toLowerCase()}/certs/${certificateId.toLowerCase()}${safeExt.toLowerCase()}`;
+}
+
+/**
+ * 아직 계측기를 모르는 성적서(2020년 파일 등)를 두는 곳.
+ * 나중에 계측기가 정해져도 파일은 옮기지 않는다 — DB 의 연결만 바뀐다.
+ */
+export function unassignedCertificateRelPath(
+  certificateId: string,
+  ext: string,
+): string {
+  const safeExt = ext.startsWith(".") ? ext : `.${ext}`;
+  return `certs-unassigned/${certificateId.toLowerCase()}${safeExt.toLowerCase()}`;
+}
+
 /** 상대경로 → 실제 파일시스템 절대경로. */
 export function absoluteFilePath(relPath: string): string {
   const segments = relPath.split("/").filter(Boolean);

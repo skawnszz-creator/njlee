@@ -16,7 +16,15 @@ export type AuditAction =
   | "METER_DELETE"
   | "METER_RESTORE"
   | "PHOTO_DOWNLOAD"
-  | "DATA_IMPORT";
+  | "CALIBRATION_CREATE"
+  | "CALIBRATION_UPDATE"
+  | "CALIBRATION_DELETE"
+  | "CERT_UPLOAD"
+  | "CERT_DOWNLOAD"
+  | "CERT_DELETE"
+  | "CERT_ASSIGN"
+  | "DATA_IMPORT"
+  | "DATA_FIX";
 
 async function clientIp(): Promise<string | null> {
   const h = await headers();
