@@ -142,10 +142,10 @@
     "model": "205104",
     "assetOwner": "DSS",
     "controlNo": "DSS자산",
-    "calibrationDueYm": "2027-01",
+    "calibrationDueYm": "2026-01",
     "quantity": 1,
     "serialNo": "S5TB03730",
-    "status": "IN_USE",
+    "status": "EXPIRED",
     "note": null,
     "sortOrder": 11
   },
@@ -262,10 +262,10 @@
     "model": "205104",
     "assetOwner": "DSS",
     "controlNo": "DSS자산",
-    "calibrationDueYm": "2027-01",
+    "calibrationDueYm": "2026-01",
     "quantity": 1,
     "serialNo": "86BA0036",
-    "status": "IN_USE",
+    "status": "EXPIRED",
     "note": null,
     "sortOrder": 19
   },
@@ -909,7 +909,7 @@
     "controlNo": "DSS자산",
     "calibrationDueYm": "2027-01",
     "quantity": 1,
-    "serialNo": "205114436U",
+    "serialNo": "14436U",
     "status": "IN_USE",
     "note": null,
     "sortOrder": 62
@@ -924,7 +924,7 @@
     "controlNo": "DSS자산",
     "calibrationDueYm": "2027-01",
     "quantity": 1,
-    "serialNo": "205122551U",
+    "serialNo": "22551U",
     "status": "IN_USE",
     "note": null,
     "sortOrder": 63
@@ -939,7 +939,7 @@
     "controlNo": "DSS자산",
     "calibrationDueYm": "2027-01",
     "quantity": 1,
-    "serialNo": "205122550U",
+    "serialNo": "22550U",
     "status": "IN_USE",
     "note": null,
     "sortOrder": 64
