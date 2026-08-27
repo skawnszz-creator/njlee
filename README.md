@@ -66,6 +66,7 @@ npm run dev
 | `npm run db:studio` | 브라우저로 DB 내용 보기 |
 | `npm run seed` | 엑셀 데이터 이관 (이미 들어 있으면 아무것도 하지 않음) |
 | `npm run seed -- --reset` | **기존 계측기 데이터를 지우고** 다시 이관 |
+| `npm run backup` | DB + 사진을 NAS 에 백업 ([docs/BACKUP.md](./docs/BACKUP.md)) |
 
 빌드가 SWC/Turbopack 에서 막히면 `next dev --webpack` / `next build --webpack` 을 쓴다.
 
@@ -87,9 +88,25 @@ npm run dev
 
 ---
 
+## 백업
+
+```
+npm run backup
+```
+
+DB 와 사진을 **함께** NAS 로 가져간다. 하나만 있으면 복구가 안 되기 때문이다.
+
+- 받는 곳: `\192.168.0.222_as센터. 계측기 관리\8. 계측기 관리 시스템 백업\`
+- DB 백업은 최근 30개 보관, 사진은 새로 생긴 것만 쌓인다
+- 매일 자동 실행 설정과 **복구 방법**은 [docs/BACKUP.md](./docs/BACKUP.md) 참고
+
+> 화면에서 지운 계측기는 실제로 지워지지 않고 감춰지기만 한다.
+> 잘못 지운 경우 백업을 되돌리기 전에 docs/BACKUP.md 의 "상황 1" 을 먼저 보라.
+
+---
+
 ## 주의
 
 - `.env.local` 에 DB 비밀번호가 들어 있다. **git 에 올리지 않는다.**
 - 사진·성적서 파일은 DB 가 아니라 `FILE_STORAGE_ROOT`(현재 `C:/WEB-DATA/dss-meters`) 아래에 있다.
-  **DB 를 백업할 때 이 폴더도 함께 백업해야 한다.**
 - 원본 엑셀과 NAS 의 성적서 폴더는 읽기만 했고 손대지 않았다.
