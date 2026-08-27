@@ -39,7 +39,7 @@ export const ko = {
   list: {
     total: "전체",
     overdue: "기한초과",
-    soon: "이번달~다음달",
+    soon: "교정기한 임박",
     calibrating: "교정진행중",
     searchPlaceholder: "자산번호 · 계측기명 · 제조사 · 모델 · S/N 검색",
     owner: "자산",
