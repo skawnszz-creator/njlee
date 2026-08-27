@@ -74,6 +74,7 @@ export const ja: Dictionary = {
     calibrationDueYm: "校正期限",
     quantity: "数量",
     serialNo: "S/N",
+    agencyNo: "校正業者番号",
     status: "状態",
     note: "備考",
     updatedAt: "最終更新",

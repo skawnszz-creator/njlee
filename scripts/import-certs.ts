@@ -7,10 +7,16 @@
  *
  * 원본 폴더는 읽기만 한다. 복사만 하고 손대지 않는다.
  *
+ * 교정 기관은 BCS 한 곳이다. 파일명의 BNB014 · BCC260626 은 업체명이 아니라
+ * BCS 가 파일마다 매기는 고유번호다.
+ *
  * 계측기를 찾는 순서
  *   1) 파일명에 S/N 이 들어 있으면 그것으로 (예: "... (289) (42050017).pdf")
- *   2) 없으면 교정업체 관리번호(BNB014)로. 이 표는 1)에서 만든다.
+ *   2) 없으면 BNB 번호로. 이 번호는 계측기마다 고정이라 표를 만들 수 있다.
  *   3) 둘 다 없으면 "주인 없는 성적서"로 넣는다. 버리지 않는다.
+ *
+ * 주의: 2026년 6월부터 BCS 가 파일명 양식을 바꿨다. 계측기명도 S/N 도 없어서
+ * 자동으로 붙일 수 없다. 앞으로는 계측기 상세 화면에서 직접 올리는 것이 맞다.
  */
 import { createReadStream, createWriteStream } from "node:fs";
 import { mkdir, open, readdir, stat } from "node:fs/promises";
@@ -332,7 +338,7 @@ async function main() {
       // 이관으로 만든 교정 이력도 함께 지운다.
       await db
         .delete(webMeterCalibrations)
-        .where(eq(webMeterCalibrations.agency, "BNB"));
+        .where(eq(webMeterCalibrations.agency, "BCS"));
     }
 
     const [admin] = await db
@@ -352,7 +358,7 @@ async function main() {
           meterId: event.meter.id,
           calibratedOn: event.on,
           nextDueYm: addMonths(event.on.slice(0, 7), 12),
-          agency: "BNB",
+          agency: "BCS", // 교정 기관. BNB/BCC 는 BCS 가 매기는 파일 고유번호다
           certificateNo: event.certNo,
           result: "PASS", // 성적서가 발행되면 합격으로 본다
           note: "NAS 성적서에서 옮김",

@@ -72,6 +72,7 @@ export const ko = {
     calibrationDueYm: "교정기한",
     quantity: "수량",
     serialNo: "S/N",
+    agencyNo: "교정업체 번호",
     status: "상태",
     note: "비고",
     updatedAt: "마지막 수정",

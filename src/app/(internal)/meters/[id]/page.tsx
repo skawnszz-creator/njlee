@@ -265,7 +265,7 @@ export default async function MeterDetailPage({
               value={meter.controlNo ?? t.common.none}
             />
             <Row
-              label={t.calibration.agency}
+              label={t.field.agencyNo}
               value={meter.agencyNo ?? t.common.none}
             />
             <Row
@@ -314,7 +314,7 @@ export default async function MeterDetailPage({
                 meterId={meter.id}
                 defaultDate={today}
                 defaultNextDue={defaultNextDue}
-                defaultAgency={meter.agencyNo ? "BNB" : ""}
+                defaultAgency="BCS"
                 t={t}
               />
             </div>
