@@ -184,7 +184,19 @@ export default async function MeterListPage({
         )}
       </div>
 
-      <FilterBar t={t} q={q} owner={owner} status={status} />
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="min-w-0 flex-1">
+          <FilterBar t={t} q={q} owner={owner} status={status} />
+        </div>
+        {sort !== "priority" && (
+          <Link
+            href={base.toString() ? `/?${base.toString()}` : "/"}
+            className="shrink-0 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
+          >
+            ↺ {t.list.defaultSort}
+          </Link>
+        )}
+      </div>
 
       <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
         <table className="min-w-full border-collapse">

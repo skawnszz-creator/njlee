@@ -49,6 +49,7 @@ export const ja: Dictionary = {
     empty: "条件に合う計測器がありません。",
     add: "計測器登録",
     reset: "条件リセット",
+    defaultSort: "既定の並び",
   },
   owner: {
     DSS: "DSS 資産",

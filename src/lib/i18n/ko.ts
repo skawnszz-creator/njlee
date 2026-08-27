@@ -47,6 +47,7 @@ export const ko = {
     empty: "조건에 맞는 계측기가 없습니다.",
     add: "계측기 등록",
     reset: "조건 초기화",
+    defaultSort: "기본 정렬",
   },
   owner: {
     DSS: "DSS 자산",

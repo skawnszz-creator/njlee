@@ -78,6 +78,7 @@ export function dueLevel(
 /* ------------------------------------------------------------------ */
 
 export const SORT_KEYS = [
+  "priority", // 기본 정렬. 표 머리글에는 없다.
   "assetNo",
   "name",
   "maker",
@@ -89,8 +90,36 @@ export const SORT_KEYS = [
 export type SortKey = (typeof SORT_KEYS)[number];
 export type SortDir = "asc" | "desc";
 
-export const DEFAULT_SORT: SortKey = "due";
+export const DEFAULT_SORT: SortKey = "priority";
 export const DEFAULT_DIR: SortDir = "asc";
+
+/**
+ * 기본 정렬 순서 — 먼저 손봐야 할 것이 위로 온다.
+ *
+ *   1  교정기한 임박            (반납·발송은 제외)
+ *   2  사용중                   자산번호순
+ *   3  그 외 (교정진행중·교정대상아님·고장 등)
+ *   4  임박인데 반납·발송        기한초과 바로 위
+ *   5  기한초과                  맨 아래
+ *
+ * dueLevel() 과 같은 판정을 SQL 로 옮긴 것이다. 둘을 함께 고쳐야 한다.
+ */
+function priorityExpression(): SQL {
+  const today = currentYm();
+  const nextMonth = addMonths(today, 1);
+
+  return sql`CASE
+    WHEN ${webMeters.status} = 'NOT_SUBJECT' THEN 3
+    WHEN ${webMeters.status} = 'EXPIRED' THEN 5
+    WHEN ${webMeters.calibrationDueYm} IS NULL
+      THEN CASE WHEN ${webMeters.status} = 'IN_USE' THEN 2 ELSE 3 END
+    WHEN ${webMeters.calibrationDueYm} < ${today} THEN 5
+    WHEN ${webMeters.calibrationDueYm} <= ${nextMonth}
+      THEN CASE WHEN ${webMeters.status} = 'RETURNED' THEN 4 ELSE 1 END
+    WHEN ${webMeters.status} = 'IN_USE' THEN 2
+    ELSE 3
+  END`;
+}
 
 /**
  * 상태 정렬은 영문 코드 순서가 아니라 "먼저 봐야 할 것" 순서로 한다.
@@ -106,6 +135,8 @@ const STATUS_ORDER = sql`CASE ${webMeters.status}
 
 function sortExpression(key: SortKey, lang: Lang): SQL {
   switch (key) {
+    case "priority":
+      return priorityExpression();
     case "assetNo":
       return sql`${webMeters.assetNo}`;
     case "name":
@@ -173,7 +204,9 @@ function buildWhere(filter: MeterFilter) {
 }
 
 /**
- * 기본은 교정기한이 임박한 순. 값이 비어 있는 것은 오름/내림 어느 쪽이든 맨 뒤에 둔다.
+ * 기본은 priorityExpression() 의 순서(임박 → 사용중 → 그 외 → 임박·반납 → 기한초과).
+ * 표 머리글을 누르면 그 열 기준으로 바뀐다.
+ * 값이 비어 있는 것은 오름/내림 어느 쪽이든 맨 뒤에 둔다.
  */
 export async function listMeters(
   filter: MeterFilter,
