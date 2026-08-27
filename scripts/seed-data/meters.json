@@ -765,6 +765,21 @@
     "sortOrder": 53
   },
   {
+    "assetNo": "DS0071",
+    "nameKo": "ANALOG MEGA Ohm HITESTER",
+    "nameJa": null,
+    "maker": "HIOKI",
+    "model": "3490",
+    "assetOwner": "DSS",
+    "controlNo": "DSS자산",
+    "calibrationDueYm": "2027-01",
+    "quantity": 1,
+    "serialNo": "250122250",
+    "status": "IN_USE",
+    "note": null,
+    "sortOrder": 53
+  },
+  {
     "assetNo": "DS0073",
     "nameKo": "Programmable POWER SUPPLY",
     "nameJa": null,
