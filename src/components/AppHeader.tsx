@@ -27,6 +27,16 @@ export function AppHeader({
         </Link>
 
         <div className="ml-auto flex items-center gap-3">
+          {/* 알림 설정은 관리자만 쓴다. 열람자에게는 보이지 않는다. */}
+          {user.role === "ADMIN" && (
+            <Link
+              href="/settings/notify"
+              className="text-sm text-slate-500 underline-offset-2 hover:text-slate-900 hover:underline"
+            >
+              {t.nav.notifySettings}
+            </Link>
+          )}
+
           <LanguageSwitch current={lang} />
 
           <span className="hidden items-center gap-1.5 text-sm text-slate-600 sm:flex">

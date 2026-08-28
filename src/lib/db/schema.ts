@@ -413,3 +413,129 @@ export type WebMeter = typeof webMeters.$inferSelect;
 export type WebMeterPhoto = typeof webMeterPhotos.$inferSelect;
 export type WebMeterCalibration = typeof webMeterCalibrations.$inferSelect;
 export type WebMeterCertificate = typeof webMeterCertificates.$inferSelect;
+
+/* ------------------------------------------------------------------ */
+/* web_notify_recipients — 교정 기한 알림을 받을 사람                    */
+/*                                                                     */
+/* web_users 와 따로 둔다. 알림만 받고 사이트는 안 쓰는 사람이 있을 수    */
+/* 있고, 반대로 사이트를 쓰지만 알림은 안 받고 싶을 수도 있다.           */
+/* ------------------------------------------------------------------ */
+
+export const webNotifyRecipients = pgTable(
+  "web_notify_recipients",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+
+    email: text("email").notNull(),
+
+    /** 화면 표시용. 비어 있으면 메일 주소를 그대로 보여 준다. */
+    name: text("name"),
+
+    /** 이 사람에게 보낼 메일의 언어. 교산 쪽 담당자는 일본어로 받는다. */
+    lang: varchar("lang", { length: 2 }).notNull().default("ko"),
+
+    /** 잠시 끄고 싶을 때. 지우지 않고 이것만 내린다. */
+    isActive: boolean("is_active").notNull().default(true),
+
+    ...timestamps,
+    ...softDelete,
+  },
+  (t) => [
+    // 같은 주소를 두 번 넣지 못하게. 지운 것은 세지 않는다.
+    uniqueIndex("web_notify_recipients_email_uq")
+      .on(t.email)
+      .where(sql`${t.isDeleted} = false`),
+    check(
+      "web_notify_recipients_lang_ck",
+      sql`${t.lang} in ('ko', 'ja')`,
+    ),
+  ],
+);
+
+/* ------------------------------------------------------------------ */
+/* web_notifications — 알림 메일 발송 기록                              */
+/*                                                                     */
+/* 같은 달에 두 번 보내지 않기 위한 자물쇠이기도 하다.                    */
+/* 배치가 하루에 여러 번 돌아도 target_ym 하나당 한 번만 나간다.         */
+/* ------------------------------------------------------------------ */
+
+export const webNotifications = pgTable(
+  "web_notifications",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+
+    /** 어느 기한을 알린 것인지 (YYYY-MM) */
+    targetYm: varchar("target_ym", { length: 7 }).notNull(),
+
+    /** 보낸 날 (YYYY-MM-DD). 보통 target_ym 의 전달 1일이다. */
+    sentOn: date("sent_on", { mode: "string" }).notNull(),
+
+    /** 알린 계측기 수 */
+    meterCount: integer("meter_count").notNull(),
+
+    /** 받은 사람 수 */
+    recipientCount: integer("recipient_count").notNull(),
+
+    /** SENT = 보냄, FAILED = 보내지 못함 */
+    result: varchar("result", { length: 10 }).notNull(),
+
+    /** 실패했을 때 서버가 준 말. 성공이면 비어 있다. */
+    error: text("error"),
+
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    // 한 기한에 성공 기록은 하나뿐. 실패는 여러 번 남을 수 있다.
+    uniqueIndex("web_notifications_target_ym_uq")
+      .on(t.targetYm)
+      .where(sql`${t.result} = 'SENT'`),
+    index("web_notifications_created_idx").on(t.createdAt),
+    check(
+      "web_notifications_result_ck",
+      sql`${t.result} in ('SENT', 'FAILED')`,
+    ),
+  ],
+);
+
+
+/* ------------------------------------------------------------------ */
+/* web_notify_templates — 알림 메일 본문                                */
+/*                                                                     */
+/* 문구를 코드에 박아 두면 한 글자 고치는 데도 개발자가 필요하다.        */
+/* 담당자가 화면에서 직접 고칠 수 있게 DB 에 둔다.                       */
+/* 계측기 표는 데이터라 자동으로 붙는다 — 여기서 고치는 것은 말뿐이다.    */
+/* ------------------------------------------------------------------ */
+
+export const webNotifyTemplates = pgTable(
+  "web_notify_templates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+
+    /** 이 문구를 쓸 언어. 언어마다 한 벌씩만 있다. */
+    lang: varchar("lang", { length: 2 }).notNull(),
+
+    /** 메일 제목. {ym} 은 기한, {count} 는 대수로 바뀐다. */
+    subject: text("subject").notNull(),
+
+    /** 표 위에 오는 문장 */
+    lead: text("lead").notNull(),
+
+    /** 표 아래에 오는 문장 */
+    footer: text("footer").notNull(),
+
+    ...timestamps,
+
+    /** 마지막으로 고친 사람 */
+    updatedBy: uuid("updated_by"),
+  },
+  (t) => [
+    uniqueIndex("web_notify_templates_lang_uq").on(t.lang),
+    check("web_notify_templates_lang_ck", sql`${t.lang} in ('ko', 'ja')`),
+  ],
+);
+
+export type WebNotifyRecipient = typeof webNotifyRecipients.$inferSelect;
+export type WebNotification = typeof webNotifications.$inferSelect;
+export type WebNotifyTemplate = typeof webNotifyTemplates.$inferSelect;

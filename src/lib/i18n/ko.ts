@@ -21,6 +21,7 @@ export const ko = {
     logout: "로그아웃",
     language: "언어",
     admin: "관리자",
+    notifySettings: "알림 설정",
     viewer: "열람자",
   },
   login: {

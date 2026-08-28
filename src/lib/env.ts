@@ -53,6 +53,40 @@ export const env = {
     return flag("DEV_FAKE_LOGIN_ENABLED");
   },
 
+  /**
+   * 알림 메일에 넣을 사이트 주소.
+   * 지금은 개발 주소다. NAS 에 올리거나 도메인이 생기면 이 값만 바꾼다.
+   */
+  get siteUrl(): string {
+    const raw = process.env.SITE_URL ?? "http://localhost:3200";
+    return raw.endsWith("/") ? raw.slice(0, -1) : raw;
+  },
+
+  /**
+   * 교정 기한 알림 메일을 보낼 cafe24 SMTP.
+   *
+   * 웹메일의 「환경설정 → POP3/SMTP 사용설정」 화면에 적힌 값을 그대로 쓴다.
+   * 그 화면에서 SMTP 연결을 '사용함' 으로 켜 두어야 로그인이 된다.
+   * 비밀번호를 바꾸면 서버에 반영될 때까지 최대 30분쯤 걸린다.
+   */
+  get smtp(): {
+    host: string;
+    port: number;
+    user: string;
+    password: string;
+    from: string;
+  } {
+    const user = required("SMTP_USER");
+    const port = Number(process.env.SMTP_PORT ?? 587);
+    return {
+      host: required("SMTP_HOST"),
+      port: Number.isFinite(port) && port > 0 ? port : 587,
+      user,
+      password: required("SMTP_PASSWORD"),
+      from: process.env.SMTP_FROM?.trim() || user,
+    };
+  },
+
   /** 세션 수명(시간). dss-auth SSO 세션의 절대 만료 12시간을 넘기지 않는다. */
   get sessionHours(): number {
     const raw = process.env.SESSION_HOURS;

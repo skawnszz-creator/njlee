@@ -13,13 +13,17 @@
     "seed": "tsx scripts/seed.ts",
     "backup": "tsx scripts/backup.ts",
     "import-certs": "tsx scripts/import-certs.ts",
-    "backfill-calibrations": "tsx scripts/backfill-calibrations.ts"
+    "backfill-calibrations": "tsx scripts/backfill-calibrations.ts",
+    "check-smtp": "tsx scripts/check-smtp.ts",
+    "preview-notify": "tsx scripts/preview-notify.ts",
+    "send-notify": "tsx scripts/send-notify.ts"
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
     "exceljs": "^4.4.0",
     "jose": "^6.2.10",
     "next": "16.3.3",
+    "nodemailer": "^9.0.6",
     "postgres": "^3.4.9",
     "react": "19.2.8",
     "react-dom": "19.2.8"
@@ -27,6 +31,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^24.13.3",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "drizzle-kit": "^0.31.10",

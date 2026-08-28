@@ -23,6 +23,7 @@ export const ja: Dictionary = {
     logout: "ログアウト",
     language: "言語",
     admin: "管理者",
+    notifySettings: "通知設定",
     viewer: "閲覧者",
   },
   login: {
