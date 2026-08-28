@@ -84,6 +84,11 @@ export const ja: Dictionary = {
     photoBody: "計測器",
     photoAccessory: "付属品",
     noPhoto: "登録された写真がありません。",
+    photoAdd: "写真追加",
+    photoUploading: "アップロード中…",
+    photoHint: "JPG・PNG、1枚あたり 20MB まで",
+    photoFailed: "写真を登録できませんでした。",
+    photoDeleteConfirm: "この写真を削除しますか？",
   },
   form: {
     newTitle: "計測器登録",

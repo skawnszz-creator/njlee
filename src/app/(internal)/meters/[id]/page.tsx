@@ -6,14 +6,17 @@ import {
   deleteCertificateAction,
 } from "@/app/actions/calibrations";
 import { AddCalibrationForm } from "@/components/AddCalibrationForm";
+import { deletePhotoAction } from "@/app/actions/photos";
 import { CertificateUpload } from "@/components/CertificateUpload";
 import { ConfirmButton } from "@/components/ConfirmButton";
 import { DeleteMeterForm } from "@/components/DeleteMeterForm";
+import { PhotoUpload } from "@/components/PhotoUpload";
 import { StatusBadge } from "@/components/StatusBadge";
 import { isAdmin } from "@/lib/auth/guards";
 import { getSessionUser } from "@/lib/auth/session";
 import { listCalibrations, listCertificates } from "@/lib/calibrations";
 import type {
+  PhotoKind,
   WebMeterCalibration,
   WebMeterCertificate,
   WebMeterPhoto,
@@ -41,14 +44,31 @@ function PhotoGroup({
   title,
   photos,
   emptyLabel,
+  meterId,
+  kind,
+  admin,
+  t,
 }: {
   title: string;
   photos: WebMeterPhoto[];
   emptyLabel: string;
+  meterId: string;
+  kind: PhotoKind;
+  admin: boolean;
+  t: Dictionary;
 }) {
   return (
     <div>
-      <p className="mb-1.5 text-xs font-semibold text-slate-500">{title}</p>
+      <div className="mb-1.5 flex flex-wrap items-center gap-2">
+        <p className="text-xs font-semibold text-slate-500">{title}</p>
+        <span className="tabular text-xs text-slate-400">{photos.length}</span>
+        {admin && (
+          <div className="ml-auto flex flex-wrap items-center justify-end gap-2">
+            <PhotoUpload meterId={meterId} kind={kind} t={t} />
+          </div>
+        )}
+      </div>
+
       {photos.length === 0 ? (
         <p className="rounded-md border border-dashed border-slate-200 px-3 py-6 text-center text-xs text-slate-400">
           {emptyLabel}
@@ -56,20 +76,40 @@ function PhotoGroup({
       ) : (
         <div className="flex flex-wrap gap-2">
           {photos.map((photo) => (
-            <a
-              key={photo.id}
-              href={`/api/photos/${photo.id}`}
-              target="_blank"
-              rel="noreferrer"
-              className="block overflow-hidden rounded-md border border-slate-200 hover:border-slate-400"
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={`/api/photos/${photo.id}`}
-                alt={photo.originalName}
-                className="h-40 w-40 object-cover"
-              />
-            </a>
+            <div key={photo.id} className="relative">
+              <a
+                href={`/api/photos/${photo.id}`}
+                target="_blank"
+                rel="noreferrer"
+                className="block overflow-hidden rounded-md border border-slate-200 hover:border-slate-400"
+                title={photo.originalName}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={`/api/photos/${photo.id}`}
+                  alt={photo.originalName}
+                  className="h-40 w-40 object-cover"
+                />
+              </a>
+
+              {/* 삭제 버튼은 링크 위에 겹쳐 둔다. a 안에 form 을 넣을 수는 없다. */}
+              {admin && (
+                <form
+                  action={deletePhotoAction}
+                  className="absolute top-1 right-1"
+                >
+                  <input type="hidden" name="id" value={photo.id} />
+                  <ConfirmButton
+                    message={`${photo.originalName}
+
+${t.detail.photoDeleteConfirm}`}
+                    className="rounded bg-white/85 px-1.5 py-0.5 text-xs font-medium text-slate-500 shadow-sm hover:bg-white hover:text-red-600"
+                  >
+                    {t.common.delete}
+                  </ConfirmButton>
+                </form>
+              )}
+            </div>
           ))}
         </div>
       )}
@@ -289,11 +329,19 @@ export default async function MeterDetailPage({
               title={t.detail.photoBody}
               photos={body}
               emptyLabel={t.detail.noPhoto}
+              meterId={meter.id}
+              kind="BODY"
+              admin={admin}
+              t={t}
             />
             <PhotoGroup
               title={t.detail.photoAccessory}
               photos={accessory}
               emptyLabel={t.detail.noPhoto}
+              meterId={meter.id}
+              kind="ACCESSORY"
+              admin={admin}
+              t={t}
             />
           </div>
         </div>

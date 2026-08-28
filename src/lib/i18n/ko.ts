@@ -82,6 +82,11 @@ export const ko = {
     photoBody: "계측기",
     photoAccessory: "부속품",
     noPhoto: "등록된 사진이 없습니다.",
+    photoAdd: "사진 추가",
+    photoUploading: "올리는 중…",
+    photoHint: "JPG · PNG, 1장당 20MB 까지",
+    photoFailed: "사진을 올리지 못했습니다.",
+    photoDeleteConfirm: "이 사진을 삭제할까요?",
   },
   form: {
     newTitle: "계측기 등록",
