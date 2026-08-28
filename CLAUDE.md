@@ -14,6 +14,7 @@
 | [DESIGN.md](./DESIGN.md) | 1차 설계 (화면 흐름, 데이터 구조) |
 | [docs/DESIGN-2차.md](./docs/DESIGN-2차.md) | 2차 설계 (교정 이력, 성적서) |
 | [docs/NOTIFY.md](./docs/NOTIFY.md) | 교정 기한 알림 메일 (설정·스케줄러·cafe24) |
+| [docs/NETWORK.md](./docs/NETWORK.md) | 여러 PC 에서 같은 데이터로 쓰기 (개발 PC 연결) |
 | [docs/BACKUP.md](./docs/BACKUP.md) | 백업과 복구 |
 | [README.md](./README.md) | 실행 방법, 명령어 |
 
@@ -72,6 +73,9 @@ http://localhost:3200 → 임시 로그인에서 「이남준 관리자」
   둘 다 A4 가로 한 장 폭에 열이 다 들어가게 맞춰 두었다
   (엑셀은 `fitToWidth`, 화면은 `globals.css` 의 `@media print`).
   **열을 새로 넣으면 두 곳 다 폭이 넘치지 않는지 봐야 한다.**
+- **사진·성적서 실물은 NAS 에 있다** (`9. 계측기 관리 시스템 파일`). PC 안이 아니다.
+  DB 는 운영 PC 에만 있고 개발 PC 는 네트워크로 붙는다 — 데이터는 한 벌뿐이라
+  **개발 PC 에서 지우면 운영 데이터가 지워진다.** 자세한 것은 docs/NETWORK.md.
 - 알림 메일 문구는 **화면에서 고친다** (`/settings/notify`). 코드에 박지 않는다.
   저장된 것이 없으면 `src/lib/mail/template.ts` 의 기본 문구를 쓴다.
 - **cafe24 SMTP 는 587 · STARTTLS 뿐이다.** 465 는 닫혀 있고, 서버가 옛 TLS 라
