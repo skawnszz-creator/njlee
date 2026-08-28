@@ -184,7 +184,7 @@ export async function deleteCertificateAction(
   revalidatePath("/certificates");
 }
 
-/** 주인 없는 성적서를 계측기에 붙인다. */
+/** 미등록 성적서를 계측기에 붙인다. */
 export async function assignCertificateAction(
   formData: FormData,
 ): Promise<void> {

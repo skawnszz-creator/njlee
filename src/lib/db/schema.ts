@@ -335,8 +335,8 @@ export const webMeterCertificates = pgTable(
 
     /**
      * 어느 계측기 것인지.
-     * NULL 을 허용한다 — 2020년 성적서처럼 파일명만으로는 주인을 알 수 없는
-     * 것들이 있다. 버리지 않고 "주인 없는 성적서"로 두었다가 사람이 붙인다.
+     * NULL 을 허용한다 — 2020년 성적서처럼 파일명만으로는 알 수 없는
+     * 것들이 있다. 버리지 않고 "미등록 성적서"로 두었다가 사람이 붙인다.
      */
     meterId: uuid("meter_id").references(() => webMeters.id),
 

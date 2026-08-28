@@ -13,7 +13,7 @@
  * 계측기를 찾는 순서
  *   1) 파일명에 S/N 이 들어 있으면 그것으로 (예: "... (289) (42050017).pdf")
  *   2) 없으면 BNB 번호로. 이 번호는 계측기마다 고정이라 표를 만들 수 있다.
- *   3) 둘 다 없으면 "주인 없는 성적서"로 넣는다. 버리지 않는다.
+ *   3) 둘 다 없으면 "미등록 성적서"로 넣는다. 버리지 않는다.
  *
  * 주의: 2026년 6월부터 BCS 가 파일명 양식을 바꿨다. 계측기명도 S/N 도 없어서
  * 자동으로 붙일 수 없다. 앞으로는 계측기 상세 화면에서 직접 올리는 것이 맞다.
@@ -268,7 +268,7 @@ async function main() {
     console.log(`성적서 총             ${files.length}건`);
     console.log(`  S/N 으로 연결       ${matches.filter((m) => m.how === "SERIAL").length}건`);
     console.log(`  업체번호로 연결     ${matches.filter((m) => m.how === "AGENCY").length}건`);
-    console.log(`  주인 없음           ${orphans.length}건`);
+    console.log(`  미등록              ${orphans.length}건`);
     console.log(`연결되는 계측기       ${coveredMeters.size} / ${meters.length}대`);
     console.log(`만들어질 교정 이력    ${events.size}건`);
 
@@ -303,7 +303,7 @@ async function main() {
       if (mismatches.length > 12) console.log(`  ... 외 ${mismatches.length - 12}대`);
     }
 
-    console.log(`\n주인 없는 성적서 ${orphans.length}건 (예시)`);
+    console.log(`\n미등록 성적서 ${orphans.length}건 (예시)`);
     for (const o of orphans.slice(0, 8)) console.log(`  ${path.basename(o.file)}`);
     if (orphans.length > 8) console.log(`  ... 외 ${orphans.length - 8}건`);
 
@@ -420,7 +420,7 @@ async function main() {
       actorName: admin?.displayName ?? "(이관 스크립트)",
       action: "DATA_IMPORT",
       entityType: "web_meter_certificates",
-      summary: `NAS 성적서 이관: 파일 ${copied}건, 교정 이력 ${events.size}건, 주인 없음 ${orphans.length}건`,
+      summary: `NAS 성적서 이관: 파일 ${copied}건, 교정 이력 ${events.size}건, 미등록 ${orphans.length}건`,
       changes: {
         source: CERT_SOURCE_ROOT,
         bySerial: matches.filter((m) => m.how === "SERIAL").length,
@@ -428,7 +428,7 @@ async function main() {
       },
     });
 
-    console.log("\n완료. 주인 없는 성적서는 화면의 '주인 없는 성적서'에서 붙일 수 있습니다.");
+    console.log("\n완료. 미등록 성적서는 화면의 '미등록 성적서'에서 붙일 수 있습니다.");
   } finally {
     await sql.end();
   }

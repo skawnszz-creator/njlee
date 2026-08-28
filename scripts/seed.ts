@@ -149,7 +149,7 @@ async function main() {
       const target = path.join(FILE_STORAGE_ROOT!, ...relPath.split("/"));
 
       // 파일이 먼저, DB 기록이 나중. 반대로 하면 DB 에는 있는데 디스크에 없는
-      // 파일이 생긴다. 이 순서면 최악의 경우 주인 없는 파일만 남는다.
+      // 파일이 생긴다. 이 순서면 최악의 경우 DB 에 없는 파일만 남는다.
       await mkdir(path.dirname(target), { recursive: true });
       await pipeline(createReadStream(source), createWriteStream(target));
 
