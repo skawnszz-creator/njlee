@@ -10,7 +10,7 @@ import { formatBytes } from "@/lib/format";
 import { getDictionary } from "@/lib/i18n";
 
 /**
- * 주인 없는 성적서.
+ * 미등록 성적서.
  *
  * 파일명에 S/N 도 교정업체 번호도 없어 자동으로 붙이지 못한 것들이다.
  * 버리지 않고 여기 모아 두었다가 사람이 계측기를 골라 붙인다.

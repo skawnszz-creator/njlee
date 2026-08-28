@@ -125,7 +125,7 @@ export const ko = {
     title: "성적서",
     upload: "파일 올리기",
     empty: "등록된 성적서가 없습니다.",
-    unassigned: "주인 없는 성적서",
+    unassigned: "미등록 성적서",
     unassignedHint:
       "파일명만으로는 어느 계측기 것인지 알 수 없는 성적서입니다. 계측기를 골라 붙여 주세요.",
     assign: "지정",
