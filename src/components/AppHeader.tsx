@@ -15,7 +15,7 @@ export function AppHeader({
   t: Dictionary;
 }) {
   return (
-    <header className="border-b border-slate-200 bg-white">
+    <header className="no-print border-b border-slate-200 bg-white">
       <div className="mx-auto flex max-w-[1400px] flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
         <Link href="/" className="flex items-baseline gap-2">
           <span className="text-lg font-semibold tracking-tight text-slate-900">

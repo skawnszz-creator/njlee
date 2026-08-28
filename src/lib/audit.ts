@@ -25,6 +25,7 @@ export type AuditAction =
   | "CERT_DOWNLOAD"
   | "CERT_DELETE"
   | "CERT_ASSIGN"
+  | "METER_EXPORT"
   | "DATA_IMPORT"
   | "DATA_FIX";
 

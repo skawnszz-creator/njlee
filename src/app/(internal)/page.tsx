@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { FilterBar } from "@/components/FilterBar";
+import { PrintButton } from "@/components/PrintButton";
 import { StatusBadge } from "@/components/StatusBadge";
 import { getSessionUser } from "@/lib/auth/session";
 import { isAdmin } from "@/lib/auth/guards";
@@ -16,7 +17,9 @@ import {
 } from "@/lib/calibrations";
 import { getDictionary, meterName } from "@/lib/i18n";
 import {
+  currentDate,
   currentYm,
+  describeFilter,
   dueLevel,
   listMeters,
   parseDir,
@@ -93,7 +96,7 @@ function SortHeader({
         {label}
         <span
           aria-hidden
-          className={`text-[0.65rem] leading-none ${
+          className={`text-[0.65rem] leading-none print:hidden ${
             active ? "text-slate-900" : "text-slate-300 group-hover:text-slate-500"
           }`}
         >
@@ -128,7 +131,8 @@ export default async function MeterListPage({
   if (owner !== "ALL") base.set("owner", owner);
   if (status !== "ALL") base.set("status", status);
 
-  const meters = await listMeters({ q, owner, status }, { key: sort, dir }, lang);
+  const filter = { q, owner, status };
+  const meters = await listMeters(filter, { key: sort, dir }, lang);
   const summary = await summarize(meters);
   const today = currentYm();
 
@@ -140,8 +144,22 @@ export default async function MeterListPage({
 
   return (
     <div className="space-y-4">
+      {/* 종이에만 나온다. 그 종이만 보고도 무엇을 뽑은 것인지 알 수 있게. */}
+      <div className="print-only mb-3">
+        <h1 className="text-lg font-semibold text-slate-900">
+          {t.list.printTitle}
+        </h1>
+        <p className="mt-0.5 text-xs text-slate-500">
+          {describeFilter(filter, t)}
+        </p>
+        <p className="text-xs text-slate-500">
+          {t.list.total} {meters.length}
+          {t.common.unit} · {currentDate()}
+        </p>
+      </div>
+
       {/* 한 줄 요약 */}
-      <div className="flex flex-wrap items-center gap-x-5 gap-y-1 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm">
+      <div className="no-print flex flex-wrap items-center gap-x-5 gap-y-1 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm">
         <span className="text-slate-700">
           {t.list.total}{" "}
           <strong className="tabular text-base text-slate-900">
@@ -184,7 +202,7 @@ export default async function MeterListPage({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="no-print flex flex-wrap items-center gap-2">
         <div className="min-w-0 flex-1">
           <FilterBar t={t} q={q} owner={owner} status={status} />
         </div>
@@ -196,9 +214,19 @@ export default async function MeterListPage({
             ↺ {t.list.defaultSort}
           </Link>
         )}
+
+        {/* 화면에서 보고 있는 조건 그대로 내려받는다. 정렬은 문서 쪽 규칙을 따른다. */}
+        <a
+          href={`/api/meters/export${base.toString() ? `?${base.toString()}` : ""}`}
+          className="shrink-0 rounded-md border border-slate-300 bg-white px-2.5 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
+        >
+          ↓ {t.list.exportExcel}
+        </a>
+
+        <PrintButton t={t} />
       </div>
 
-      <div className="overflow-x-auto rounded-lg border border-slate-200 bg-white">
+      <div className="print-table overflow-x-auto rounded-lg border border-slate-200 bg-white">
         <table className="min-w-full border-collapse">
           <thead className="border-b border-slate-200 bg-slate-50">
             <tr>
@@ -230,6 +258,10 @@ export default async function MeterListPage({
                 dir={dir}
                 base={base}
               />
+              {/* 전체로 뽑으면 DSS 것과 교산 것이 섞인다. 종이에서는 구분이 필요하다. */}
+              <th className={`${TH} hidden print:table-cell`}>
+                {t.field.assetOwner}
+              </th>
               <SortHeader
                 label={t.field.controlNo}
                 column="controlNo"
@@ -289,6 +321,11 @@ export default async function MeterListPage({
                     title={meter.model ?? ""}
                   >
                     {meter.model ?? t.common.none}
+                  </td>
+                  <td
+                    className={`${TD} print-owner hidden text-slate-500 print:table-cell`}
+                  >
+                    {t.owner[meter.assetOwner]}
                   </td>
                   <td className={`${TD} tabular text-slate-500`}>
                     {meter.controlNo ?? t.common.none}

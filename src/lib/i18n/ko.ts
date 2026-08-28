@@ -48,6 +48,9 @@ export const ko = {
     add: "계측기 등록",
     reset: "조건 초기화",
     defaultSort: "기본 정렬",
+    exportExcel: "엑셀 내보내기",
+    print: "인쇄",
+    printTitle: "계측기 리스트",
   },
   owner: {
     DSS: "DSS 자산",

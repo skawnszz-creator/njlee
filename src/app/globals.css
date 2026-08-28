@@ -32,3 +32,90 @@ body {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
+
+/* ------------------------------------------------------------------ */
+/* 인쇄                                                                 */
+/*                                                                      */
+/* 목록을 종이로 뽑을 때 쓴다. 인쇄용 화면을 따로 만들지 않고 지금 보고    */
+/* 있는 표를 그대로 찍는다. 화면에서만 쓰는 것(머리말·검색칸·버튼)을       */
+/* 감추고, 표가 잘리지 않게 가로로 눕힌다.                                */
+/* ------------------------------------------------------------------ */
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+
+  /* 배경색을 빼고 인쇄하는 것이 기본값이다. 기한 경고가 사라지면 안 된다. */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  /* 화면에서는 가로로 밀어 보던 표다. 종이에서는 밀 수 없으니 다 펴 놓는다. */
+  .print-table {
+    overflow: visible !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+
+  .print-table table {
+    width: 100%;
+    font-size: 8.5pt;
+  }
+
+  .print-table th,
+  .print-table td {
+    padding: 3px 5px !important;
+    border: 1px solid #cbd5e1;
+    max-width: none !important;
+    white-space: normal !important;
+    overflow: visible !important;
+  }
+
+  /* 머리글은 짧다. 접히면 "자산번 / 호" 처럼 보여서 오히려 읽기 나쁘다. */
+  .print-table th,
+  .print-table td.print-owner {
+    white-space: nowrap !important;
+  }
+
+  /* 여러 장이 되어도 머리글이 장마다 다시 나온다. */
+  .print-table thead {
+    display: table-header-group;
+  }
+
+  .print-table tr {
+    break-inside: avoid;
+  }
+
+  /* 종이에서 밑줄과 파란 글씨는 방해만 된다. */
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+
+  /* 본문이 화면 폭에 묶여 있으면 종이에서 여백만 늘어난다. */
+  main {
+    max-width: none !important;
+    padding: 0 !important;
+  }
+}

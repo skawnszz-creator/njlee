@@ -50,6 +50,9 @@ export const ja: Dictionary = {
     add: "計測器登録",
     reset: "条件リセット",
     defaultSort: "既定の並び",
+    exportExcel: "エクセル出力",
+    print: "印刷",
+    printTitle: "計測器リスト",
   },
   owner: {
     DSS: "DSS 資産",

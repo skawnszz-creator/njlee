@@ -6,7 +6,7 @@
 import { and, asc, eq, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 
 import { db } from "@/lib/db";
-import type { Lang } from "@/lib/i18n";
+import type { Dictionary, Lang } from "@/lib/i18n";
 import {
   webMeterPhotos,
   webMeters,
@@ -172,6 +172,28 @@ export type MeterFilter = {
   owner?: AssetOwner | "ALL";
   status?: MeterStatus | "ALL";
 };
+
+/**
+ * 지금 걸려 있는 조건을 사람이 읽는 한 줄로 만든다.
+ * 엑셀과 인쇄 종이 위쪽에 같은 문장이 찍혀야, 나중에 그 종이만 보고도
+ * 무엇을 뽑은 것인지 알 수 있다.
+ */
+export function describeFilter(filter: MeterFilter, t: Dictionary): string {
+  const parts = [
+    `${t.list.owner}: ${
+      filter.owner && filter.owner !== "ALL"
+        ? t.owner[filter.owner]
+        : t.common.all
+    }`,
+    `${t.list.status}: ${
+      filter.status && filter.status !== "ALL"
+        ? t.status[filter.status]
+        : t.common.all
+    }`,
+  ];
+  if (filter.q?.trim()) parts.push(`${t.common.search}: ${filter.q.trim()}`);
+  return parts.join("   ·   ");
+}
 
 function buildWhere(filter: MeterFilter) {
   const conditions = [eq(webMeters.isDeleted, false)];
