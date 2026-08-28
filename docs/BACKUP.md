@@ -85,6 +85,42 @@ Set-ScheduledTask -TaskName '계측기 관리 시스템 백업' `
   -Trigger (New-ScheduledTaskTrigger -Daily -At '20:00')
 ```
 
+### ⚠ PostgreSQL 이 꺼져 있으면 백업이 실패한다
+
+PostgreSQL 이 **서비스로 등록되어 있지 않다.** PC 를 껐다 켜면 사람이 직접 켜야 한다.
+
+```
+"C:\Users\이남준\pgsql\bin\pg_ctl.exe" -D C:\pgdata -l C:\pgdata\server.log start
+```
+
+켜지 않은 상태로 18:30 이 되면 백업이 이렇게 실패한다. **실제로 2026-08-28 09:06 에 이렇게 실패했다.**
+
+```
+백업 실패: pg_dump.exe 실패 (코드 1)
+pg_dump: "127.0.0.1" 포트 5432 접속 실패: Connection refused
+```
+
+교정 기한 알림 메일도 같은 이유로 못 나간다 (docs/NOTIFY.md).
+
+**고치려면 둘 중 하나다.**
+
+1. **서비스로 등록** (관리자 권한). PC 를 켜면 자동으로 뜬다 — 가장 확실하다.
+
+   ```powershell
+   & "C:\Users\이남준\pgsql\bin\pg_ctl.exe" register -N postgresql -D C:\pgdata -S auto
+   Start-Service postgresql
+   ```
+
+2. **로그온할 때 켜지게** (관리자 권한 없이). 로그인해야 뜬다는 점이 다르다.
+
+   ```powershell
+   $a = New-ScheduledTaskAction -Execute 'C:\Users\이남준\pgsql\bin\pg_ctl.exe' `
+     -Argument '-D C:\pgdata -l C:\pgdata\server.log start'
+   Register-ScheduledTask -TaskName 'PostgreSQL 시작' -Action $a `
+     -Trigger (New-ScheduledTaskTrigger -AtLogOn) `
+     -Principal (New-ScheduledTaskPrincipal -UserId '이남준' -LogonType Interactive)
+   ```
+
 ### 잘 돌고 있는지 보려면
 
 ```powershell
