@@ -3,9 +3,13 @@
  *
  *   npm run backup
  *
- * 두 가지를 함께 백업한다. 하나만 있으면 복구가 안 되기 때문이다.
- *   1) 데이터베이스  — 계측기 정보·사용자·감사 로그   (pg_dump)
- *   2) 파일          — 계측기 사진, 나중에는 교정 성적서 PDF
+ * 세 가지를 함께 백업한다. 하나라도 빠지면 복구가 안 되기 때문이다.
+ *   1) 설정         — .env.local (접속 주소·계정). git 에 없으므로 여기서만 지킨다.
+ *   2) 데이터베이스  — 계측기 정보·사용자·감사 로그   (pg_dump)
+ *   3) 파일          — 계측기 사진, 교정 성적서 PDF
+ *
+ * .env.local 에는 **비밀번호가 평문으로** 들어 있다. 백업 폴더를 볼 수 있는
+ * 사람은 그 비밀번호도 보게 된다는 것을 알고 두는 것이다.
  *
  * 파일은 날짜별로 통째로 복사하지 않고 한 폴더에 쌓아 올린다(미러).
  * 저장 파일 이름이 UUID 라 한 번 만들어진 파일은 절대 바뀌지 않으므로,
@@ -115,6 +119,27 @@ async function exists(target: string): Promise<boolean> {
   } catch {
     return false;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/* 0. 설정 파일                                                         */
+/*                                                                     */
+/* DB 와 사진만으로는 되살릴 수 없다. 접속 주소·메일 계정 같은 것이       */
+/* .env.local 에만 있고, 이 파일은 git 에 올라가지 않기 때문이다.        */
+/*                                                                     */
+/* 주의: 이 파일에는 DB 와 메일 비밀번호가 평문으로 들어 있다.            */
+/* 백업 폴더(NAS)를 볼 수 있는 사람은 이 비밀번호도 보게 된다.           */
+/* ------------------------------------------------------------------ */
+
+async function backupConfig(configDir: string) {
+  const source = path.join(process.cwd(), ".env.local");
+  if (!(await exists(source))) return { missing: true as const, size: 0 };
+
+  // 날짜별로 쌓지 않고 덮어쓴다. 되살릴 때 필요한 것은 늘 "지금 쓰는 값" 이다.
+  const target = path.join(configDir, ".env.local");
+  await copyFile(source, target);
+  const info = await stat(target);
+  return { missing: false as const, size: info.size };
 }
 
 /* ------------------------------------------------------------------ */
@@ -239,16 +264,28 @@ async function main() {
 
   const dbDir = path.join(BACKUP_ROOT, "db");
   const filesDir = path.join(BACKUP_ROOT, "files");
+  const configDir = path.join(BACKUP_ROOT, "config");
   await mkdir(dbDir, { recursive: true });
   await mkdir(filesDir, { recursive: true });
+  await mkdir(configDir, { recursive: true });
 
   say("");
-  say("[1/3] 데이터베이스");
+  say("[1/4] 설정 파일");
+  const config = await backupConfig(configDir);
+  if (config.missing) {
+    say("  .env.local 이 없습니다. 건너뜁니다.");
+  } else {
+    say(`  .env.local  (${human(config.size)})`);
+    say("  ※ 비밀번호가 평문으로 들어 있습니다. 이 폴더의 접근 권한을 확인하세요.");
+  }
+
+  say("");
+  say("[2/4] 데이터베이스");
   const db = await backupDatabase(dbDir, at);
   say(`  ${path.basename(db.file)}  (${human(db.size)})`);
 
   say("");
-  say("[2/3] 파일");
+  say("[3/4] 파일");
   const files = await mirrorFiles(FILE_STORAGE_ROOT, filesDir);
   if (files.missing) {
     say(`  저장 폴더가 없습니다: ${FILE_STORAGE_ROOT}`);
@@ -259,13 +296,14 @@ async function main() {
   }
 
   say("");
-  say("[3/3] 오래된 백업 정리");
+  say("[4/4] 오래된 백업 정리");
   const pruned = await pruneOldDumps(dbDir);
   say(`  보관 ${pruned.kept}개 · 삭제 ${pruned.removed.length}개`);
   for (const name of pruned.removed) say(`    - ${name}`);
 
   const manifest = {
     backedUpAt: startedAt.toISOString(),
+    config: config.missing ? null : { file: ".env.local", sizeBytes: config.size },
     database: { file: path.basename(db.file), sizeBytes: db.size },
     files: {
       copied: files.copied,
